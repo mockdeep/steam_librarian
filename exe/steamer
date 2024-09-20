@@ -1,1 +1,10 @@
 #!/usr/bin/env ruby
+
+require 'bundler/inline'
+
+gemfile do
+  gem 'activesupport', require: 'active_support/all'
+  gem 'http'
+end
+
+require_relative "../lib/steamer"
