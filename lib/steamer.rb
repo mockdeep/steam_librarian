@@ -11,13 +11,18 @@ module Steamer
 
   class << self
     def call
+      mutex = Mutex.new
       games = fetch_games
 
-      games.each_with_index do |game, index|
-        puts "#{index + 1}/#{games.size} - #{game.name}"
-        fetch_achievements(game) unless game.achievement_data_complete?
-        fetch_game_times(game) unless game.hltb_data_complete?
-        write_to_file(games)
+      Steamer::ThreadPool.open(thread_count: 10) do |pool|
+        games.each_with_index do |game, index|
+          pool.push do
+            puts "#{index + 1}/#{games.size} - #{game.name}"
+            fetch_achievements(game) unless game.achievement_data_complete?
+            fetch_game_times(game) unless game.hltb_data_complete?
+            mutex.synchronize { write_to_file(games) }
+          end
+        end
       end
 
 
@@ -62,3 +67,4 @@ end
 require_relative "steamer/how_long_to_beat"
 require_relative "steamer/steam"
 require_relative "steamer/game"
+require_relative "steamer/thread_pool"
