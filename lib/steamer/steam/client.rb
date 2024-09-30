@@ -6,7 +6,9 @@ module Steamer::Steam::Client
     def fetch_games
       url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=#{STEAM_WEB_API_KEY}&steamid=#{STEAM_ID}&format=json&include_appinfo=1&include_played_free_games=1"
       response = HTTP.get(url)
-      JSON.parse(response.body).deep_symbolize_keys[:response][:games]
+      JSON.parse(response.body).deep_symbolize_keys[:response][:games].map do |game|
+        Steamer::Game.new(**game)
+      end
     end
   end
 end
