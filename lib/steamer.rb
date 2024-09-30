@@ -13,8 +13,8 @@ module Steamer
     def call
       games = fetch_games
 
-      games.each do |game|
-        p game.name
+      games.each_with_index do |game, index|
+        puts "#{index + 1}/#{games.size} - #{game.name}"
         fetch_achievements(game) unless game.achievement_data_complete?
         fetch_game_times(game) unless game.hltb_data_complete?
         write_to_file(games)
@@ -46,7 +46,7 @@ module Steamer
       p "fetching game times for #{game.name}"
       result = Steamer::HowLongToBeat::Client.search(normalize(game.name))
 
-      game.add_times(**result)
+      game.add_times(**result) if result
     end
 
     def write_to_file(games)

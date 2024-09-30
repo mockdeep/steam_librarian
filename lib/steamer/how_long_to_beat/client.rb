@@ -49,8 +49,7 @@ module Steamer::HowLongToBeat::Client
       end
 
       unless game
-        binding.irb
-        raise "Game not found #{name}"
+        puts "Game not found #{name}"
       end
 
       game
