@@ -41,7 +41,7 @@ module Steamer::HowLongToBeat::Client
           #     'randomizer': 0
           # }
       }.to_json
-      response = HTTP.post(HOW_LONG_TO_BEAT_SEARCH_URL, body:, headers:)
+      response = post_with_backoff(HOW_LONG_TO_BEAT_SEARCH_URL, body, headers)
       result = JSON.parse(response.body).deep_symbolize_keys
       game = result[:data].detect do |game|
         Steamer.normalize(game[:game_name]) == name ||
@@ -54,6 +54,17 @@ module Steamer::HowLongToBeat::Client
       end
 
       game
+    end
+
+    def post_with_backoff(url, body, headers, retry_count: 0)
+      raise "Too many retries" if retry_count > 5
+
+      response = HTTP.post(url, body:, headers:)
+      return response if response.status.success?
+
+      puts "Retrying #{url} #{retry_count}"
+      sleep 2 ** retry_count
+      post_with_backoff(url, body, headers, retry_count: retry_count + 1)
     end
   end
 end

@@ -5,6 +5,8 @@
 # get list of games from steam
 # get times for each game from HowLongToBeat
 
+require 'json'
+
 module Steamer
 
   class << self
@@ -48,9 +50,7 @@ module Steamer
     end
 
     def write_to_file(games)
-      File.open("games.json", "w") do |f|
-        f.write(games.map(&:to_h).to_json)
-      end
+      File.write("games.json", JSON.pretty_generate(games.map(&:to_h)))
     end
 
     def normalize(name)

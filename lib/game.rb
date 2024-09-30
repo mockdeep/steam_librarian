@@ -1,5 +1,5 @@
 class Steamer::Game
-  attr_accessor :steam_appid, :name, :hltb_game_id, :completion_time, :review_score
+  attr_accessor :steam_appid, :name, :hltb_game_id, :seconds_to_complete, :review_score
 
   def self.load(**attrs)
     game = allocate
@@ -18,7 +18,7 @@ class Steamer::Game
 
   def add_times(game_id:, comp_100:, review_score:, **)
     self.hltb_game_id = game_id
-    self.completion_time = comp_100
+    self.seconds_to_complete = comp_100
     self.review_score = review_score
   end
 
@@ -27,7 +27,7 @@ class Steamer::Game
   end
 
   def hltb_data_complete?
-    hltb_game_id && completion_time && review_score
+    hltb_game_id && seconds_to_complete && review_score
   end
 
   def to_h
@@ -35,7 +35,7 @@ class Steamer::Game
       steam_appid:,
       name:,
       hltb_game_id:,
-      completion_time:,
+      seconds_to_complete:,
       review_score:,
     }
   end
