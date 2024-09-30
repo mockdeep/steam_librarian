@@ -61,4 +61,4 @@ end
 
 require_relative "steamer/how_long_to_beat"
 require_relative "steamer/steam"
-require_relative "game"
+require_relative "steamer/game"
