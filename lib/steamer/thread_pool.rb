@@ -1,3 +1,5 @@
+Thread.abort_on_exception = true
+
 class Steamer::ThreadPool
 
   attr_accessor :queue, :results, :result_index, :thread_count, :threads

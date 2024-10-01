@@ -24,9 +24,6 @@ module Steamer
           end
         end
       end
-
-
-      binding.irb
     end
 
     def read_from_file
