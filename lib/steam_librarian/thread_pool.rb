@@ -1,6 +1,6 @@
 Thread.abort_on_exception = true
 
-class Steamer::ThreadPool
+class SteamLibrarian::ThreadPool
 
   attr_accessor :queue, :results, :result_index, :thread_count, :threads
 

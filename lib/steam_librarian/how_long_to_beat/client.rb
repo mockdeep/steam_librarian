@@ -1,4 +1,4 @@
-module Steamer::HowLongToBeat::Client
+module SteamLibrarian::HowLongToBeat::Client
   HOW_LONG_TO_BEAT_BASE_URL='https://howlongtobeat.com/'
   HOW_LONG_TO_BEAT_API_KEY=ENV.fetch('HOW_LONG_TO_BEAT_API_KEY')
   HOW_LONG_TO_BEAT_SEARCH_URL="#{HOW_LONG_TO_BEAT_BASE_URL}api/search/#{HOW_LONG_TO_BEAT_API_KEY}"
@@ -44,8 +44,8 @@ module Steamer::HowLongToBeat::Client
       response = post_with_backoff(HOW_LONG_TO_BEAT_SEARCH_URL, body, headers)
       result = JSON.parse(response.body).deep_symbolize_keys
       game = result[:data].detect do |game|
-        Steamer.normalize(game[:game_name]) == name ||
-          Steamer.normalize(game[:game_alias]) == name
+        SteamLibrarian.normalize(game[:game_name]) == name ||
+          SteamLibrarian.normalize(game[:game_alias]) == name
       end
 
       unless game

@@ -1,4 +1,4 @@
-module Steamer::Steam
+module SteamLibrarian::Steam
 end
 
 require_relative "steam/client"

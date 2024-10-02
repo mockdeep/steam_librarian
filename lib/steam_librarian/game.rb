@@ -1,4 +1,4 @@
-class Steamer::Game
+class SteamLibrarian::Game
   attr_accessor :steam_appid, :name, :hltb_game_id, :seconds_to_complete, :review_score
 
   def self.load(**attrs)

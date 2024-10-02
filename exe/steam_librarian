@@ -7,6 +7,6 @@ gemfile do
   gem 'http'
 end
 
-require_relative "../lib/steamer"
+require_relative "../lib/steam_librarian"
 
-Steamer.call
+SteamLibrarian.call
