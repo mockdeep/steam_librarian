@@ -1,7 +1,6 @@
 module SteamLibrarian::HowLongToBeat::Client
-  HOW_LONG_TO_BEAT_BASE_URL='https://howlongtobeat.com/'
-  HOW_LONG_TO_BEAT_API_KEY=ENV.fetch('HOW_LONG_TO_BEAT_API_KEY')
-  HOW_LONG_TO_BEAT_SEARCH_URL="#{HOW_LONG_TO_BEAT_BASE_URL}api/search/#{HOW_LONG_TO_BEAT_API_KEY}"
+  HOW_LONG_TO_BEAT_BASE_URL='https://howlongtobeat.com'
+  HOW_LONG_TO_BEAT_SEARCH_URL="#{HOW_LONG_TO_BEAT_BASE_URL}/api/search"
 
   class << self
     def search(name)
@@ -41,7 +40,7 @@ module SteamLibrarian::HowLongToBeat::Client
           #     'randomizer': 0
           # }
       }.to_json
-      response = post_with_backoff(HOW_LONG_TO_BEAT_SEARCH_URL, body, headers)
+      response = post_with_backoff(body, headers)
       result = JSON.parse(response.body).deep_symbolize_keys
       game = result[:data].detect do |game|
         SteamLibrarian.normalize(game[:game_name]) == name ||
@@ -68,15 +67,31 @@ module SteamLibrarian::HowLongToBeat::Client
       game
     end
 
-    def post_with_backoff(url, body, headers, retry_count: 0)
+    def post_with_backoff(body, headers, retry_count: 0)
+      url = "#{HOW_LONG_TO_BEAT_SEARCH_URL}/#{api_key}"
       raise "Too many retries" if retry_count > 5
 
       response = HTTP.post(url, body:, headers:)
       return response if response.status.success?
 
+      @api_key = nil if response.status == 403
+
       puts "Retrying #{url} #{retry_count}"
       sleep 2 ** retry_count
-      post_with_backoff(url, body, headers, retry_count: retry_count + 1)
+      post_with_backoff(body, headers, retry_count: retry_count + 1)
+    end
+
+    def api_key
+      return @api_key if @api_key
+
+      session = Capybara::Session.new(:selenium_headless)
+      session.visit(HOW_LONG_TO_BEAT_BASE_URL)
+      scripts = session.all("script", visible: false)
+      srcs = scripts.map { |s| s['src'] }
+      src = srcs.detect { |s| s.include?('_app') }
+      session.visit(src)
+
+      @api_key = session.text.match(%r{/api/search/".concat\("([[:alnum:]]+)"\)})[1]
     end
   end
 end

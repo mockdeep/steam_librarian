@@ -5,6 +5,9 @@
 # get list of games from steam
 # get times for each game from HowLongToBeat
 
+require 'capybara'
+require 'active_support/all'
+require 'http'
 require 'json'
 
 module SteamLibrarian
