@@ -9,6 +9,9 @@ require 'capybara'
 require 'active_support/all'
 require 'http'
 require 'json'
+require 'parallel'
+
+Thread.abort_on_exception = true
 
 module SteamLibrarian
 
@@ -17,15 +20,11 @@ module SteamLibrarian
       mutex = Mutex.new
       games = fetch_games
 
-      SteamLibrarian::ThreadPool.open(thread_count: 2) do |pool|
-        games.each_with_index do |game, index|
-          pool.push do
-            puts "#{index + 1}/#{games.size} - #{game.name}"
-            fetch_achievements(game) unless game.achievement_data_complete?
-            fetch_game_times(game) unless game.hltb_data_complete?
-            mutex.synchronize { write_to_file(games) }
-          end
-        end
+      Parallel.each_with_index(games, in_threads: 2) do |game, index|
+        puts "#{index + 1}/#{games.size} - #{game.name}"
+        fetch_achievements(game) unless game.achievement_data_complete?
+        fetch_game_times(game, mutex:) unless game.hltb_data_complete?
+        mutex.synchronize { write_to_file(games) }
       end
     end
 
@@ -47,9 +46,9 @@ module SteamLibrarian
       # fetch achievements
     end
 
-    def fetch_game_times(game)
+    def fetch_game_times(game, mutex:)
       p "fetching game times for #{game.name}"
-      result = SteamLibrarian::HowLongToBeat::Client.search(normalize(game.name))
+      result = SteamLibrarian::HowLongToBeat::Client.search(normalize(game.name), mutex:)
 
       game.add_times(**result) if result
     end
@@ -67,4 +66,3 @@ end
 require_relative "steam_librarian/how_long_to_beat"
 require_relative "steam_librarian/steam"
 require_relative "steam_librarian/game"
-require_relative "steam_librarian/thread_pool"

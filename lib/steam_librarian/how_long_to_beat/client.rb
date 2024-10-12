@@ -3,7 +3,7 @@ module SteamLibrarian::HowLongToBeat::Client
   HOW_LONG_TO_BEAT_SEARCH_URL="#{HOW_LONG_TO_BEAT_BASE_URL}/api/search"
 
   class << self
-    def search(name)
+    def search(name, mutex:)
       headers = {
         'content-type' => 'application/json',
         'referer' => HOW_LONG_TO_BEAT_BASE_URL,
@@ -48,20 +48,22 @@ module SteamLibrarian::HowLongToBeat::Client
       end
 
       unless game
-        puts "Game not found #{name}"
+        mutex.synchronize do
+          puts "Game not found #{name}"
 
-        # raise "no matches for game: #{game}" if result[:data].empty?
-        return if result[:data].empty?
+          # raise "no matches for game: #{game}" if result[:data].empty?
+          return if result[:data].empty?
 
-        puts "Found alternatives:"
-        result[:data].each_with_index do |game_data, index|
-          game_string = "#{game_data[:game_id]} #{game_data[:game_name]} (#{game_data[:game_alias]})"
-          puts "#{index + 1}. #{game_string}"
+          puts "Found alternatives:"
+          result[:data].each_with_index do |game_data, index|
+            game_string = "#{game_data[:game_id]} #{game_data[:game_name]} (#{game_data[:game_alias]})"
+            puts "#{index + 1}. #{game_string}"
+          end
+
+          game_index = gets
+          p game_index
+          game = result[:data][Integer(game_index.strip) - 1] if game_index
         end
-
-        game_index = gets
-        p game_index
-        game = result[:data][Integer(game_index.strip) - 1] if game_index
       end
 
       game

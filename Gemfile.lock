@@ -5,6 +5,7 @@ PATH
       activesupport (~> 7.2)
       capybara (~> 3.40)
       http (~> 5.2)
+      parallel (~> 1.26)
       selenium-webdriver (~> 4.25)
 
 GEM

@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activesupport", "~> 7.2"
   spec.add_dependency "capybara", "~> 3.40"
   spec.add_dependency "http", "~> 5.2"
+  spec.add_dependency "parallel", "~> 1.26"
   spec.add_dependency "selenium-webdriver", "~> 4.25"
 
   # For more information and examples about making a new gem, checkout our
