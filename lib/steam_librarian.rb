@@ -20,7 +20,7 @@ module SteamLibrarian
       mutex = Mutex.new
       games = fetch_games
 
-      Parallel.each_with_index(games, in_threads: 2) do |game, index|
+      Parallel.each_with_index(games, in_threads: 5) do |game, index|
         puts "#{index + 1}/#{games.size} - #{game.name}"
         fetch_achievements(game) unless game.achievement_data_complete?
         fetch_game_times(game, mutex:) unless game.hltb_data_complete?
@@ -48,7 +48,7 @@ module SteamLibrarian
 
     def fetch_game_times(game, mutex:)
       p "fetching game times for #{game.name}"
-      result = SteamLibrarian::HowLongToBeat::Client.search(normalize(game.name), mutex:)
+      result = SteamLibrarian::HowLongToBeat::Client.search(game, mutex:)
 
       game.add_times(**result) if result
     end
