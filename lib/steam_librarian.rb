@@ -26,6 +26,10 @@ module SteamLibrarian
         fetch_game_times(game, mutex:) unless game.hltb_data_complete?
         mutex.synchronize { write_to_file(games) }
       end
+
+      incomplete_games = games.reject(&:hltb_data_complete?)
+      puts "Incomplete games: #{incomplete_games.size}"
+      incomplete_games.each { |game| puts game.name }
     end
 
     def read_from_file

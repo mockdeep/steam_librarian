@@ -1,7 +1,7 @@
 module SteamLibrarian::HowLongToBeat::Client
   BASE_URL='https://howlongtobeat.com'
   SEARCH_URL="#{BASE_URL}/api/search"
-  EDIT_DATA_URL="#{BASE_URL}/_next/data/<build_id>/game/<game_id>/edit/boogers.json"
+  EDIT_DATA_URL="#{BASE_URL}/_next/data/<build_id>/game/<game_id>.json"
 
   HEADERS = {
     'content-type' => 'application/json',
@@ -42,7 +42,7 @@ module SteamLibrarian::HowLongToBeat::Client
               'randomizer': 0
           }
       }.to_json
-      response = post_with_backoff(body)
+      response = post_with_backoff(body, mutex:)
       result = JSON.parse(response.body).deep_symbolize_keys
 
       if result[:data].empty?
@@ -55,27 +55,29 @@ module SteamLibrarian::HowLongToBeat::Client
           SteamLibrarian.normalize(game_data[:game_alias]) == name
       end
 
-      return matching_data if matching_data && confirm(game, matching_data)
+      return matching_data if matching_data && confirm(game, matching_data, mutex:)
 
       matching_data = result[:data].detect do |game_data|
-        confirm(game, game_data)
+        confirm(game, game_data, mutex:)
       end
 
-      mutex.synchronize { binding.irb } unless matching_data
+      # mutex.synchronize { binding.irb } unless matching_data
 
       matching_data
     end
 
-    def confirm(game, game_data)
+    def confirm(game, game_data, mutex:)
       edit_url = edit_data_url(game_data)
       page_data = JSON.parse(HTTP.get(edit_url, headers: HEADERS).body).deep_symbolize_keys
-      edit_game_data = page_data[:pageProps][:gameData]
+      edit_game_data = page_data[:pageProps][:game][:data][:game].first
+
+      mutex.synchronize { binding.irb } unless edit_game_data
       edit_game_data[:profile_steam] == game.steam_appid ||
         edit_game_data[:profile_steam_alt] == game.steam_appid
     end
 
-    def post_with_backoff(body, retry_count: 0)
-      url = "#{SEARCH_URL}/#{api_key}"
+    def post_with_backoff(body, retry_count: 0, mutex:)
+      url = "#{SEARCH_URL}/#{mutex.synchronize { api_key }}"
       raise "Too many retries" if retry_count > 5
 
       response = HTTP.post(url, body:, headers: HEADERS)
@@ -85,7 +87,7 @@ module SteamLibrarian::HowLongToBeat::Client
 
       puts "Retrying #{url} #{retry_count}"
       sleep 2 ** retry_count
-      post_with_backoff(body, retry_count: retry_count + 1)
+      post_with_backoff(body, retry_count: retry_count + 1, mutex:)
     end
 
     def edit_data_url(game_data)
@@ -102,13 +104,12 @@ module SteamLibrarian::HowLongToBeat::Client
 
     def request_info
       @request_info ||= begin
-        session = Capybara::Session.new(:selenium)
+        session = Capybara::Session.new(:selenium_headless)
         session.visit(BASE_URL)
         build_id = JSON.parse(session.find('#__NEXT_DATA__', visible: false).text(:all))['buildId']
         scripts = session.all("script", visible: false)
 
-        srcs = scripts.map { |s| s['src'] }
-        src = srcs.detect { |s| s.include?('_app') }
+        src = scripts.map { |s| s['src'] }.detect { |s| s.include?('_app') }
         session.visit(src)
 
         api_key = session.text.match(%r{/api/search/".concat\("([[:alnum:]]+)"\)})[1]
