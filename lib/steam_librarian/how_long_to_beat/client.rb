@@ -41,7 +41,7 @@ module SteamLibrarian::HowLongToBeat::Client
 
   class << self
     def search(game, mutex:)
-      name = SteamLibrarian.normalize(game.name)
+      name = normalize(game.name)
       body = BODY.merge(searchTerms: name.split).to_json
       response = post_with_backoff(body, mutex:)
       result = JSON.parse(response.body).deep_symbolize_keys
@@ -52,8 +52,8 @@ module SteamLibrarian::HowLongToBeat::Client
       end
 
       matching_data = result[:data].detect do |game_data|
-        SteamLibrarian.normalize(game_data[:game_name]) == name ||
-          SteamLibrarian.normalize(game_data[:game_alias]) == name
+        normalize(game_data[:game_name]) == name ||
+          normalize(game_data[:game_alias]) == name
       end
 
       return matching_data if matching_data && confirm(game, matching_data, mutex:)
@@ -119,6 +119,10 @@ module SteamLibrarian::HowLongToBeat::Client
       ensure
         session.quit
       end
+    end
+
+    def normalize(name)
+      name.gsub(/\W/, ' ').downcase.squish
     end
   end
 end

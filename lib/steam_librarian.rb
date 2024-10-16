@@ -60,10 +60,6 @@ module SteamLibrarian
     def write_to_file(games)
       File.write("games.json", JSON.pretty_generate(games.map(&:to_h)))
     end
-
-    def normalize(name)
-      name.gsub(/\W/, ' ').downcase.squish
-    end
   end
 end
 
