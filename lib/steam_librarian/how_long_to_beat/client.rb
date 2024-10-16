@@ -41,24 +41,24 @@ module SteamLibrarian::HowLongToBeat::Client
 
   class << self
     def search(game, mutex:)
-      name = normalize(game.name)
-      body = BODY.merge(searchTerms: name.split).to_json
+      normalized_name = normalize(game.name)
+      body = BODY.merge(searchTerms: normalized_name.split).to_json
       response = post_with_backoff(body, mutex:)
-      result = JSON.parse(response.body).deep_symbolize_keys
+      data = JSON.parse(response.body).deep_symbolize_keys[:data]
 
-      if result[:data].empty?
+      if data.empty?
         puts "No matches for game: #{game.name}"
         return
       end
 
-      matching_data = result[:data].detect do |game_data|
-        normalize(game_data[:game_name]) == name ||
-          normalize(game_data[:game_alias]) == name
+      matching_data = data.detect do |game_data|
+        normalize(game_data[:game_name]) == normalized_name ||
+          normalize(game_data[:game_alias]) == normalized_name
       end
 
       return matching_data if matching_data && confirm(game, matching_data, mutex:)
 
-      matching_data = result[:data].detect do |game_data|
+      matching_data = data.detect do |game_data|
         confirm(game, game_data, mutex:)
       end
 
