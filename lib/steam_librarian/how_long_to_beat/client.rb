@@ -9,39 +9,40 @@ module SteamLibrarian::HowLongToBeat::Client
     'User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0',
   }
 
+  BODY = {
+    searchType: "games",
+    searchPage: 1,
+    size: 20,
+    searchOptions: {
+      games: {
+        userId: 0,
+        platform: "",
+        sortCategory: "popular",
+        rangeCategory: "main",
+        rangeTime: {
+          min: 0,
+          max: 0,
+        },
+        gameplay: {
+          perspective: "",
+          flow: "",
+          genre: "",
+        },
+        modifier: "",
+      },
+      users: {
+        sortCategory: "postcount",
+      },
+      filter: "",
+      sort: 0,
+      randomizer: 0,
+    },
+  }
+
   class << self
     def search(game, mutex:)
       name = SteamLibrarian.normalize(game.name)
-      body = {
-          'searchType': "games",
-          'searchTerms': name.split,
-          'searchPage': 1,
-          'size': 20,
-          'searchOptions': {
-              'games': {
-                  'userId': 0,
-                  'platform': "",
-                  'sortCategory': "popular",
-                  'rangeCategory': "main",
-                  'rangeTime': {
-                      'min': 0,
-                      'max': 0
-                  },
-                  'gameplay': {
-                      'perspective': "",
-                      'flow': "",
-                      'genre': ""
-                  },
-                  'modifier': "",
-              },
-              'users': {
-                  'sortCategory': "postcount"
-              },
-              'filter': "",
-              'sort': 0,
-              'randomizer': 0
-          }
-      }.to_json
+      body = BODY.merge(searchTerms: name.split).to_json
       response = post_with_backoff(body, mutex:)
       result = JSON.parse(response.body).deep_symbolize_keys
 
