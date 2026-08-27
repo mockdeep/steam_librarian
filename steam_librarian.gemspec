@@ -33,7 +33,7 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "activesupport", "~> 8.1"
   spec.add_dependency "capybara", "~> 3.40"
-  spec.add_dependency "http", "~> 5.2"
+  spec.add_dependency "http", "~> 6.0"
   spec.add_dependency "parallel", "~> 1.26"
   spec.add_dependency "selenium-webdriver", "~> 4.25"
 
