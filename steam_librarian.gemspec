@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_dependency "activesupport", "~> 7.2"
+  spec.add_dependency "activesupport", "~> 8.1"
   spec.add_dependency "capybara", "~> 3.40"
   spec.add_dependency "http", "~> 5.2"
   spec.add_dependency "parallel", "~> 1.26"
